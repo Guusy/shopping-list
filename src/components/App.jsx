@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
-import Idea from './Idea'
+import Item from './Item'
 import { withFirebase } from '../firebase/withFirebase'
 import * as theme from '../theme'
 import './App.less'
+import AddItemInput from './addItemInput/AddItemInput'
 
 const App = props => {
-    const { ideasCollection } = props.firebase
+    const { itemsCollection } = props.firebase
 
-    const ideasContainer = useRef(null)
-    const [idea, setIdeaInput] = useState('')
-    const [ideas, setIdeas] = useState([])
+    const itemsContainer = useRef(null)
+    const [topic, setTopic] = useState('supermarket')
+    const [items, setItems] = useState([])
     const [currentTheme, setCurrentTheme] = useState('lightTheme')
 
     const toggleTheme = () => {
@@ -29,84 +30,81 @@ const App = props => {
     }, [currentTheme])
 
     useEffect(() => {
-        const unsubscribe = ideasCollection
+        const unsubscribe = itemsCollection
             .orderBy('timestamp', 'desc')
             .onSnapshot(({ docs }) => {
                 const ideasFromDB = []
-
+                console.log(docs)
                 docs.forEach(doc => {
+                    console.log('doc', doc.data())
                     const details = {
                         id: doc.id,
-                        content: doc.data().idea,
+                        content: doc.data().item,
                         timestamp: doc.data().timestamp
                     }
 
                     ideasFromDB.push(details)
                 })
-
-                setIdeas(ideasFromDB)
+                console.log('asdasd', ideasFromDB)
+                setItems(ideasFromDB)
             })
 
         return () => unsubscribe()
     }, [])
 
-    const onIdeaDelete = event => {
+    const onItemDelete = event => {
         const { id } = event.target
-        ideasCollection.doc(id).delete()
+        itemsCollection.doc(id).delete()
     }
 
-    const onIdeaAdd = event => {
-        event.preventDefault()
+    const onItemAdd = (value) => {
 
-        if (!idea.trim().length) return
+        if (!value.trim().length) return
+        itemsContainer.current.scrollTop = 0 // scroll to top of container
 
-        setIdeaInput('')
-        ideasContainer.current.scrollTop = 0 // scroll to top of container
-
-        ideasCollection.add({
-            idea,
+        itemsCollection.add({
+            item: value,
+            topic,
             timestamp: new Date()
         })
     }
 
-    const renderIdeas = () => {
-        if (!ideas.length)
-            return <h2 className="app__content__no-idea">Add a new Idea...</h2>
-
-        return ideas.map(idea => (
-            <Idea key={idea.id} idea={idea} onDelete={onIdeaDelete} />
-        ))
-    }
-
     return (
         <div className="app">
-            <header className="app__header">
-                <h1 className="app__header__h1">Idea Box</h1>
-                <button
-                    type="button"
-                    className="app__btn theme-toggle"
-                    onClick={toggleTheme}
-                >
-                    {currentTheme === 'lightTheme' ? '🌑' : '🌕'}
-                </button>
+            <header >
+                <div className="app__header" >
+                    <h1 className="app__header__h1">Shopping list</h1>
+                    <button
+                        type="button"
+                        className="app__btn theme-toggle"
+                        onClick={toggleTheme}
+                    >
+                        {currentTheme === 'lightTheme' ? '🌑' : '🌕'}
+                    </button>
+                </div>
+
+                <nav className="app__nav">
+                    <div
+                        className={`app__nav__item ${topic === 'supermarket' ? 'app__nav__item--selected' : ''}`}
+                        onClick={() => setTopic('supermarket')}>
+                        Supermercado
+                    </div>
+                    <div
+                        className={`app__nav__item ${topic === 'house' ? 'app__nav__item--selected' : ''}`}
+                        onClick={() => setTopic('house')}>
+                        Cosas de la casa
+                    </div>
+                </nav>
             </header>
 
-            <section ref={ideasContainer} className="app__content">
-                {renderIdeas()}
+            <section ref={itemsContainer} className="app__content">
+                {items.length === 0 && <h3 className="app__content__no-idea">Aun no hay nada en el listado...</h3>}
+                {items.map(item => (
+                    <Item key={item.id} item={item} onDelete={onItemDelete} />
+                ))}
             </section>
 
-            <form className="app__footer" onSubmit={onIdeaAdd}>
-                <input
-                    type="text"
-                    className="app__footer__input"
-                    placeholder="Add a new idea"
-                    value={idea}
-                    onChange={e => setIdeaInput(e.target.value)}
-                />
-                <button type="submit" className="app__btn app__footer__submit-btn">
-                    +
-        </button>
-            </form>
+            <AddItemInput onItemAdd={onItemAdd} />
         </div>
     )
 }

@@ -70,6 +70,23 @@ body,
     }
   }
 
+  &__nav {
+    display: flex;
+    
+    &__item {
+      border: 1px solid black;
+      width: 100%;
+      text-align: center;
+      border-radius: 5px;
+      padding: 0.5em;
+      &--selected {
+        border: 2px solid blue;
+      }
+    }
+
+    
+  }
+
   &__content {
     grid-area: content;
     justify-self: center;
