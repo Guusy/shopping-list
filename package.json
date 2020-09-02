@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel public/index.html",
-    "build": "parcel build public/index.html --out-dir build --no-source-maps",
+    "build": "parcel build public/index.html --out-dir build --no-source-maps --no-content-hash",
     "deploy": "npm run build && firebase deploy"
   },
   "keywords": [],
@@ -17,6 +17,7 @@
     "react-dom": "^16.13.1"
   },
   "devDependencies": {
+    "less": "^3.12.2",
     "parcel": "^1.12.4",
     "parcel-bundler": "^1.12.4"
   }
