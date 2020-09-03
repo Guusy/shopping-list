@@ -5,8 +5,11 @@ import * as theme from '../theme'
 import './App.less'
 import AddItemInput from './addItemInput/AddItemInput'
 
-const App = props => {
-    const { itemsCollection } = props.firebase
+const collectionMap = {
+    supermarket: 'supermarketItemsCollection',
+    house: 'houseItemsCollection',
+}
+const App = ({ firebase }) => {
 
     const itemsContainer = useRef(null)
     const [topic, setTopic] = useState('supermarket')
@@ -30,41 +33,52 @@ const App = props => {
     }, [currentTheme])
 
     useEffect(() => {
-        const unsubscribe = itemsCollection
+        const unsubscribe = getCurrentItems()
+        return () => unsubscribe()
+    }, [topic])
+
+    const getCurrentCollection = () => firebase[collectionMap[topic]]
+
+    const getCurrentItems = () => {
+        const collection = getCurrentCollection()
+        return collection
             .orderBy('timestamp', 'desc')
             .onSnapshot(({ docs }) => {
                 const ideasFromDB = []
-                console.log(docs)
                 docs.forEach(doc => {
-                    console.log('doc', doc.data())
                     const details = {
                         id: doc.id,
-                        content: doc.data().item,
-                        timestamp: doc.data().timestamp
+                        ...doc.data()
                     }
-
                     ideasFromDB.push(details)
                 })
                 console.log('asdasd', ideasFromDB)
                 setItems(ideasFromDB)
             })
-
-        return () => unsubscribe()
-    }, [])
-
-    const onItemDelete = event => {
-        const { id } = event.target
-        itemsCollection.doc(id).delete()
     }
+    const onItemDelete = item => {
+        const newQuantity = item.quantity - 1
+        if (newQuantity > 0) {
+            getCurrentCollection().doc(item.id).update({ quantity: newQuantity })
+        } else {
+            getCurrentCollection().doc(item.id).delete()
+        }
+    }
+
+    const onItemAddOneMore = item => {
+        getCurrentCollection().doc(item.id).update({ quantity: item.quantity + 1 })
+    }
+
 
     const onItemAdd = (value) => {
 
         if (!value.trim().length) return
         itemsContainer.current.scrollTop = 0 // scroll to top of container
 
-        itemsCollection.add({
-            item: value,
+        getCurrentCollection().add({
+            name: value,
             topic,
+            quantity: 1,
             timestamp: new Date()
         })
     }
@@ -73,7 +87,7 @@ const App = props => {
         <div className="app">
             <header >
                 <div className="app__header" >
-                    <h1 className="app__header__h1">Shopping list</h1>
+                    <h1 className="app__header__h1">Lista de compras</h1>
                     <button
                         type="button"
                         className="app__btn theme-toggle"
@@ -100,7 +114,7 @@ const App = props => {
             <section ref={itemsContainer} className="app__content">
                 {items.length === 0 && <h3 className="app__content__no-idea">Aun no hay nada en el listado...</h3>}
                 {items.map(item => (
-                    <Item key={item.id} item={item} onDelete={onItemDelete} />
+                    <Item key={item.id} item={item} onDelete={onItemDelete} onAdd={onItemAddOneMore} />
                 ))}
             </section>
 

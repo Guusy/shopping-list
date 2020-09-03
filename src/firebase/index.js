@@ -15,7 +15,8 @@ class Firebase {
 
         // instance variables
         this.db = FirebaseApp.firestore()
-        this.itemsCollection = this.db.collection('items')
+        this.houseItemsCollection = this.db.collection('house_items')
+        this.supermarketItemsCollection = this.db.collection('supermarket_items')
     }
 }
 
