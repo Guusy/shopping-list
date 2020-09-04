@@ -122,7 +122,7 @@ const App = ({ firebase }) => {
     }
     return (
         <div className="app">
-            <header >
+            <header style={{ position: 'relative' }} >
                 <div className="app__header" >
                     <h2 className="app__header__h1"> {buying ? 'Estas en el supermercado' : 'Lista de compras'}</h2>
                     <button
@@ -154,23 +154,23 @@ const App = ({ firebase }) => {
                     </div>
                     </nav>
                 }
-            </header>
-            {buying && <form onSubmit={searchItem} style={{
-                position: 'fixed',
-                top: '4em',
-                width: '100%',
-                padding: '0px 18px'
-            }}>
-                <input
-                    type="text"
-                    className="app__footer__input"
-                    style={{ width: '100%', marginBottom: '0.5em', border: '0.5px solid black' }}
-                    placeholder="Busca un producto"
-                    value={searchInput}
-                    onChange={({ target: { value } }) => setSearchInput(value)}
-                />
+                {buying && <form onSubmit={searchItem} style={{
+                    position: 'absolute',
+                    width: '100%',
+                    padding: '0px 18px'
+                }}>
+                    <input
+                        type="text"
+                        className="app__footer__input"
+                        style={{ width: '100%', marginBottom: '0.5em', border: '1px solid black' }}
+                        placeholder="Busca un producto"
+                        value={searchInput}
+                        onChange={({ target: { value } }) => setSearchInput(value)}
+                    />
 
-            </form>}
+                </form>}
+            </header>
+
             <section ref={itemsContainer} className="app__content">
                 {buying ?
                     <div style={{ width: '95%' }}>
